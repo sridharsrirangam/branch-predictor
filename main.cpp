@@ -21,9 +21,11 @@ int main(int argc, char *argv[])
   unsigned int M2;
   unsigned long size;
   char pred_br;  
-  
+  unsigned int gshare_n;
+  unsigned long ghb = 0;
+
   Bimodal bimodal;
-  
+  Gshare gshare; 
   if(argc != 2)
   {
     cout<<"invalid arguments"<<endl;
@@ -35,17 +37,21 @@ int main(int argc, char *argv[])
   
   FILE *pFile;
   char *fname = (char *)malloc(30);
-  fname = argv[3];
 
 
   if(strcmp(brpr_model,"bimodal") == 0)
   {
     cout<<"branch predictor type: "<<brpr_model<<endl;
     M2 = atoi(argv[2]);
+    fname = argv[3];
   }
   if(strcmp(brpr_model,"gshare") == 0)
-  cout<<"branch predictor type: "<<brpr_model<<endl;
-  
+  {
+    cout<<"branch predictor type: "<<brpr_model<<endl;
+    M2 = atoi(argv[2]);
+    gshare_n = atoi(argv[3]);
+    fname = argv[4];
+  } 
   if(strcmp(brpr_model,"hybrid") == 0)
   cout<<"branch predictor type: "<<brpr_model<<endl;
   
@@ -60,17 +66,21 @@ int main(int argc, char *argv[])
 
   size = pow(2,M2);
   bimodal.Bimodal_c(size);
+  gshare.Gshare_c(size);
   while(fscanf(pFile,"%s %c",&addr_str, &actual_br))
   {
     if(feof(pFile)) break;
     addr = strtoul(addr_str,NULL,16);
    // cout<<hex<<addr<<" " <<actual_br<<endl;
-    addr = addr/4;
-    index = addr % (unsigned long)(pow(2,M2));
+    addr = addr/4; //ignoring last 2 bits of PC
+   
+    // BIMODAL beginning ******************************************************************************
+
     if(strcmp(brpr_model,"bimodal") == 0)
     {
     
     // cout<<" BP "<<dec<<index<<" "<<bimodal.pred_table.get_prediction_count(index);
+     index = addr % (unsigned long)(pow(2,M2));
      int prev_pred = bimodal.pred_table.get_prediction_count(index);
      if(prev_pred >= 2)
      {
@@ -95,8 +105,30 @@ int main(int argc, char *argv[])
     
     // cout<<" BU "<<dec<<index<<" "<<bimodal.pred_table.get_prediction_count(index)<<endl;
      }
+
+
+    // Gshare beggining ***********************************************************************************
+
+    if(strcmp(brpr_model,"gshare") == 0)
+    { 
+      unsigned int size_n = (unsigned int)(pow(2,gshare_n));
+      unsigned int size_m = (unsigned int)(pow(2,M2));
+      unsigned int size_m_n = (unsigned int)(pow(2, M2 - gshare_n));
+
+      ghb = ghb % size_n;
+      unsigned long addr_m_bits = addr % size_m;
+      unsigned long ghb_xor = ghb << (M2 - gshare_n);
+      unsigned int index = addr_m_bits ^ ghb_xor;
+       
+       cout<<" BP "<<dec<<index<<" "<<gshare.pred_table.get_prediction_count(index)<<endl;
+
+
+
+
+    }
   
   }
-   bimodal.pred_table.print_stats(); 
+    if(strcmp(brpr_model,"bimodal") == 0)  bimodal.pred_table.print_stats(); 
+    if(strcmp(brpr_model,"bimodal") == 0)
   return 0;
 }

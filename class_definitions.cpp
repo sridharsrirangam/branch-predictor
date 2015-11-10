@@ -100,3 +100,15 @@ class Bimodal
   }
 
 };
+
+class Gshare
+{
+  public:
+    BTB pred_table;
+    unsigned int ghb;
+    void Gshare_c(unsigned int size)
+    {
+      pred_table.BTB_c(size);
+      ghb = 0;
+    }
+};
