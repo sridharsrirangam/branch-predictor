@@ -37,6 +37,7 @@ class BTB
     void increment_prediction_count(ulong);
     void decrement_prediction_count(ulong);
     void print_stats();
+    void set_count_to_1();
 };
 
 int BTB::find_tag_in_BTB (ulong tag, ulong index)
@@ -81,10 +82,17 @@ void BTB::decrement_prediction_count(ulong index)
 
 void BTB::print_stats()
 {
-  std::cout<<"Final Bimodal Contents"<<std::endl;
   for(int i = 0; i<size;i++)
   {
-    std::cout<<i<<" "<<get_prediction_count(i)<<std::endl;
+    std::cout<<std::dec<<i<<" "<<get_prediction_count(i)<<std::endl;
+  }
+}
+
+void BTB::set_count_to_1()
+{
+  for(int i=0;i<size;i++)
+  {
+    btb_block[i].count = 1;
   }
 }
 
